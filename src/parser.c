@@ -568,16 +568,20 @@ void operand() {
       return error(undecIdentifier, t);
     t = GetNextToken();
     t = PeekNextToken();
-   	if (checkSym(t,'.')) {
-    t = GetNextToken();
-    t = GetNextToken();
-
-    if (checkId(t))
+    if (checkSym(t,'.')) {
+      t = GetNextToken();
+      t = GetNextToken();
+      if (checkId(t))
         return error(idExpected,t);
 
-    if (find_symbol_all(t.lx) == -1)
-        add_token_to_sub_check(t,0);
-	}
+      /*
+       * The identifier after a dot is a subroutine/method name, not a
+       * variable in the current symbol table. For example, in
+       * `ball.move()` the variable `ball` must be declared, but `move`
+       * belongs to Ball and should not be reported as an undeclared local
+       * identifier here.
+       */
+    }
     t = PeekNextToken();
     if (checkSym(t,'[')) {
       t = GetNextToken();
