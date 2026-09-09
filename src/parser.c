@@ -568,14 +568,16 @@ void operand() {
       return error(undecIdentifier, t);
     t = GetNextToken();
     t = PeekNextToken();
-    if (checkSym(t,'.')) {
-      t = GetNextToken();
-      t = GetNextToken();
-      if (checkId(t))
+   	if (checkSym(t,'.')) {
+    t = GetNextToken();
+    t = GetNextToken();
+
+    if (checkId(t))
         return error(idExpected,t);
-      if (find_symbol_all(t.lx) == -1)
+
+    if (find_symbol_all(t.lx) == -1)
         add_token_to_sub_check(t,0);
-    }
+	}
     t = PeekNextToken();
     if (checkSym(t,'[')) {
       t = GetNextToken();
