@@ -1,31 +1,50 @@
-name: Run Tests
+name: Compiler Tests
 
 on:
   push:
-    branches:
-      - main
-      - master
-
   pull_request:
-    branches:
-      - main
-      - master
 
 jobs:
   test:
+    name: JACK Compiler - 20/20 Tests
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Install GCC and Make
+      - name: Install build tools
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc make
 
-      - name: Build project
+      - name: Build compiler
         run: make
 
-      - name: Run tests
-        run: make test
+      - name: Run compiler tests
+        id: tests
+        run: |
+          set -o pipefail
+          make test | tee test-results.txt
+
+      - name: Test Results
+        if: always()
+        run: |
+          echo "## JACK Compiler Test Results" >> "$GITHUB_STEP_SUMMARY"
+
+          if grep -q "Total mark = 20/20" test-results.txt; then
+            echo "### ✅ 20/20 - All tests passed" >> "$GITHUB_STEP_SUMMARY"
+          else
+            SCORE=$(grep "Total mark" test-results.txt | tail -1 || true)
+
+            if [ -n "$SCORE" ]; then
+              echo "### ❌ $SCORE" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "### ❌ Tests failed" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo '```text' >> "$GITHUB_STEP_SUMMARY"
+          tail -30 test-results.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
